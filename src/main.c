@@ -6,7 +6,7 @@
 
 int main(void){
 
-    Application* app = initApplication(NULL);
+    Application* app = initApplication("config.cinit");
     runApplication(app);
     deleteApplication(app);
 

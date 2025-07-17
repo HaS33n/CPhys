@@ -1,34 +1,37 @@
 #include "../include/World.h"
+#include "../include//VectorUtils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
-World* createWorld(int n_entities, float grav, float ppm, float col_coeff, sfVector2u bounds){
+World* createWorld(Config* config){
 	World* wrld = malloc(sizeof(World));
 	if (wrld == NULL) {
-		printf("Memory Fail\n");
+		perror("Memory Fail\n");
 		exit(EXIT_FAILURE);
 	}
 
-	wrld->grav_accel = grav;
-	wrld->num_bodies = n_entities;
-	wrld->pixels_per_meter = ppm;
-	wrld->phys_area_size = bounds;
-	wrld->collision_perfection_coef = col_coeff;
-	wrld->bodies = malloc(n_entities * sizeof(CircPhysicsBody*));
+	wrld->config = config;
+	wrld->bodies = malloc(config->num_bodies * sizeof(CircPhysicsBody*));
 	if (wrld->bodies == NULL) {
-		printf("Memory Fail\n");
+		perror("Memory Fail\n");
 		exit(EXIT_FAILURE);
 	}
 	srand(time(NULL));
 	wrld->rng = seedRand(rand());
-	const sfVector2f mass_range = { 0.5f, 10.f };
-	const sfVector2f velocity_range = { 0.5f, 100.f };
-	const sfVector2f radius_range = { 20.f, 70.f };
-	const sfVector2f f_bounds = { bounds.x, bounds.y };
 
-	for (int i = 0; i < n_entities; i++) {
-		CircPhysicsBody* obj = createRandomCPBody(mass_range, velocity_range, f_bounds, radius_range,&wrld->rng);
+
+	for (int i = 0; i < config->num_defined_bodies; i++) {
+		bodyDEF* def = config->definitions + i;
+
+		CircPhysicsBody* obj = createTestDummy(def->position, def->radius, def->velocity, def->mass, &wrld->rng);
+		wrld->bodies[i] = obj;
+	}
+	for (int i = 0; i < (config->num_bodies - config->num_defined_bodies); i++) {
+		const sfVector2u u = config->phys_area_size;
+		const sfVector2f f_bounds = { u.x, u.y };
+		CircPhysicsBody* obj = createRandomCPBody(config->mRange, config->vRange, f_bounds, config->rRange, &wrld->rng);
 		wrld->bodies[i] = obj;
 	}
 
@@ -36,19 +39,77 @@ World* createWorld(int n_entities, float grav, float ppm, float col_coeff, sfVec
 }
 
 void deleteWorld(World* wrld){
-	for (int i = 0; i < wrld->num_bodies; i++)
+	for (int i = 0; i < wrld->config->num_bodies; i++)
 		deleteCPBody(wrld->bodies[i]);
 
 	free(wrld->bodies);
+	deleteConfig(wrld->config);
 	free(wrld);
 }
 
 void updateWorld(World* wrld, sfTime deltaT){
-	//TODO: physics
+	// /*
+	const float dt = sfTime_asSeconds(deltaT);
+
+	for (int i = 0; i < wrld->config->num_bodies; i++) {
+		int db = 0;
+
+		CircPhysicsBody* body = wrld->bodies[i];
+
+		sfVector2f position = sfCircleShape_getPosition(body->entity);
+		const float r = sfCircleShape_getRadius(body->entity);
+		const float mass = body->mass;
+		sfVector2f velocity = body->velocity;
+
+		//gravity
+		velocity.y += wrld->config->grav_accel * dt;
+
+		//collision with walls TODO: Branchless
+		if (position.x + 2 * r >= wrld->config->phys_area_size.x || position.x <= 0) {
+
+			velocity.x *= -1 * wrld->config->collision_perfection_coef;
+			velocity.y *= wrld->config->collision_perfection_coef;
+
+			if (fabs(velocity.x) < PHYS_EPS)
+				velocity.x = 0;
+
+			if (fabs(velocity.y) < PHYS_EPS)
+				velocity.y = 0;
+		}
+		if (position.y + 2 * r >= wrld->config->phys_area_size.y || position.y <= 0) {
+
+			velocity.y *= -1 * wrld->config->collision_perfection_coef;
+			velocity.x *= wrld->config->collision_perfection_coef;
+
+			if (fabs(velocity.x) < PHYS_EPS)
+				velocity.x = 0;
+
+			if (fabs(velocity.y) < PHYS_EPS)
+				velocity.y = 0;
+
+			db = 1;
+		}
+
+		//collision with other bodies
+		//TODO
+
+
+		position.x += dt * velocity.x * wrld->config->pixels_per_meter;
+		position.y += dt * velocity.y * wrld->config->pixels_per_meter;
+
+
+
+		if (db)
+			printf("%f , %f\n", velocity.x, velocity.y);
+
+		body->velocity = velocity;
+		sfCircleShape_setPosition(body->entity, position);
+	}
+	// */
 }
 
 void drawWorld(sfRenderWindow* target, World* wrld){
-	for (int i = 0; i < wrld->num_bodies; i++)
+	for (int i = 0; i < wrld->config->num_bodies; i++)
 		drawCPBody(target, wrld->bodies[i]);
 }
 
@@ -56,7 +117,7 @@ void drawWorld(sfRenderWindow* target, World* wrld){
 CircPhysicsBody* createCPBody(){
 	CircPhysicsBody* body = malloc(sizeof(CircPhysicsBody));
 	if (body == NULL) {
-		printf("Memory Fail\n");
+		perror("Memory Fail\n");
 		exit(EXIT_FAILURE);
 	}
 	body->entity = NULL;
@@ -78,29 +139,69 @@ void drawCPBody(sfRenderWindow* target, CircPhysicsBody* obj){
 	sfRenderWindow_drawCircleShape(target, obj->entity, NULL);
 }
 
-//TODO: ensure no body will be generated on top of another and add some padding to rng output to prevent multiplying by 0
+//TODO: ensure no body will be generated on top of another and fix ranges
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng){
 	CircPhysicsBody* bdy = createCPBody();
 
 	//rand() from libc sucks, thus im using superior way to generate random numbers c:
 	//note, this mt19937 implementation is NOT made by me!
-	bdy->mass = ((float)(mass_range.y - mass_range.x)) * genRand(rng);
+	float m = mass_range.y * genRand(rng);
+	m += mass_range.x * (m < mass_range.x); //branchless ensuring that result is greater or equal min_range
+	bdy->mass = m;
 
-	const float vx = (((float)(velocity_range.y - velocity_range.x)) * genRand(rng)) * ((genRandLong(rng) % 2) * -1);
-	const float vy = (((float)(velocity_range.y - velocity_range.x)) * genRand(rng)) * ((genRandLong(rng) % 2) * -1);
+	float vx = velocity_range.y * genRand(rng);
+	vx += velocity_range.x * (vx < velocity_range.x);
+	//vx *= 1 - ((genRandLong(rng) % 2) * 2);
+
+	float vy = velocity_range.y * genRand(rng);
+	vy += velocity_range.x * (vy < mass_range.x);
+	//vy *= 1 - ((genRandLong(rng) % 2) * 2);
+
 	const sfVector2f v = { vx, vy };
 	bdy->velocity = v;
+
 	
 	sfCircleShape* shape = sfCircleShape_create();
-	sfCircleShape_setRadius(shape, ((float)(radius_range.y - radius_range.x)) * genRand(rng));
+	float rad = radius_range.y * genRand(rng);
+	rad += radius_range.x * (rad < radius_range.x); //branchless ensuring that result is greater or equal min_range
+	sfCircleShape_setRadius(shape, rad);
 
-	const float x = ((float)(bounds.x - sfCircleShape_getRadius(shape) - 10)) * genRand(rng); //10 serves as a buffor of some sort
-	const float y = ((float)(bounds.y - sfCircleShape_getRadius(shape) - 10)) * genRand(rng); // - || -
+	const float r = sfCircleShape_getRadius(shape) + 10.f; //10 serves as a buffor of some sort
+	bounds.x -= r;
+	bounds.y -= r;
+	
+	float x = bounds.x * genRand(rng);
+	x += r * (x < 0);
+
+	float y = bounds.y * genRand(rng);
+	y += r * (y < 0);
+
 	const sfVector2f pos = { x,y };
 	sfCircleShape_setPosition(shape, pos);
+
 
 	sfCircleShape_setFillColor(shape, sfColor_fromInteger(genRandLong(rng) | 255u)); //ensure alpha always stays 255
 	bdy->entity = shape;
 
+	printf("%f , %f\n", vx, vy);
 	return bdy;
+}
+
+CircPhysicsBody* createTestDummy(sfVector2f pos, float r, sfVector2f v, float m, MTRand* rng){
+	CircPhysicsBody* bdy = createCPBody();
+	bdy->mass = m;
+	bdy->velocity = v;
+
+	sfCircleShape* shp = sfCircleShape_create();
+	sfCircleShape_setRadius(shp, r);
+	sfCircleShape_setPosition(shp, pos);
+	sfCircleShape_setFillColor(shp, sfColor_fromInteger(genRandLong(rng) | 255u));
+
+	bdy->entity = shp;
+	return bdy;
+}
+
+void deleteConfig(Config* cfg){
+	free(cfg->definitions);
+	free(cfg);
 }
