@@ -44,3 +44,4 @@ sfVector2f strtov2f(const char* str){
 
 	return vec;
 }
+

@@ -1,6 +1,4 @@
 #include "../include/Application.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include "../include//VectorUtils.h"
 
 Application* initApplication(const char* path){
@@ -55,6 +53,24 @@ void deleteApplication(Application* app){
 	free(app);
 }
 
+//-------------------------------------------------------------
+//auxiliary funcs for parsing
+static void parseFloatVal(const char* src, void* dest) {
+	float* ptr = (float*)(dest);
+	*ptr = strtof(src, NULL);
+}
+
+static void parseVecVal(const char* src, void* dest) {
+	sfVector2f* ptr = (sfVector2f*)(dest);
+	*ptr = strtov2f(src);
+}
+
+static void parseBdyVal(const char* src, void* dest) {
+	bodyDEF* ptr = (bodyDEF*)(dest);
+	*ptr = defineBodyFromStr(src);
+}
+//----------------------------------------------------------------
+
 //This function assumes that file has correct format of information
 //if not, then program will probably segfualt -> I have a handler for that B)
 Config* parseInputFromPath(const char* path){
@@ -64,59 +80,28 @@ Config* parseInputFromPath(const char* path){
 		exit(EXIT_FAILURE);
 	}
 
-
 	FILE* cfg_file = fopen(path, "r");
 	if (cfg_file == NULL) {
 		perror("Failure when reading config file\n");
 		exit(EXIT_FAILURE);
 	}
 
-	//todo FIX small buffer size
-	char buffer[1000]; //static size buffer works fine with this read system. There is no valid data, that will be bigger than 100 bytes.
-
-	//read first 8 env entries
+	//(optional) TODO FIX small buffer size problem with big comments
+	char buffer[1000];
 	float floats[5];
 	sfVector2f vectors[4];
 
-	
-	for (int i = 0; i < 5; i++) {//for floats
-		fgets(buffer, 1000, cfg_file);
-		clearLine(buffer);
-		if (strlen(buffer) == 0) { //clear line or comment
-			i--;
-			continue;
-		}
-		floats[i] = strtof(buffer,NULL);
-	}
+	readNLines(cfg_file, buffer, sizeof(buffer), floats, sizeof(float), 5, parseFloatVal);
+	readNLines(cfg_file, buffer, sizeof(buffer), vectors, sizeof(sfVector2f), 4, parseVecVal);
 
-	
-	for (int i = 0; i < 4; i++) {//for vecs
-		fgets(buffer, 1000, cfg_file);
-		clearLine(buffer);
-		if (strlen(buffer) == 0) { //clear line or comment
-			i--;
-			continue;
-		}
-		vectors[i] = strtov2f(buffer);
-	}
-
-	//read all defined bodies
 	bodyDEF* defs = malloc(sizeof(bodyDEF) * (int)floats[0]);
 	if (defs == NULL) {
 		perror("Memory Fail\n");
 		exit(EXIT_FAILURE);
 	}
+	readNLines(cfg_file, buffer, sizeof(buffer), defs, sizeof(bodyDEF), (int)floats[0], parseBdyVal);
 
-	for (int i = 0; i < (int)floats[0]; i++) {
-		fgets(buffer, 1000, cfg_file);
-		clearLine(buffer);
-		if (strlen(buffer) == 0) { //clear line or comment
-			i--;
-			continue;
-		}
-		defs[i] = defineBodyFromStr(buffer);
-	}
-	
+	//TODO compile result in function
 	cfg->num_defined_bodies = (int)floats[0];
 	cfg->num_bodies = (int)floats[1];
 	cfg->grav_accel = floats[2];
@@ -131,8 +116,13 @@ Config* parseInputFromPath(const char* path){
 
 	cfg->definitions = defs;
 
+	if (!checkCFG(cfg)) {
+		perror("input out of range");
+		exit(EXIT_FAILURE);
+	}
 
 	fclose(cfg_file);
+
 	return cfg;
 }
 
@@ -158,5 +148,51 @@ bodyDEF defineBodyFromStr(const char* str){
 	bodyDEF ret = { m,r,vel,pos };
 
 	return ret;
+}
+
+bool checkCFG(const Config* cfg){
+	bool res = true;
+
+
+	res &= (cfg->num_bodies >= LIMITS_ENTITIES.x && cfg->num_bodies <= LIMITS_ENTITIES.y);
+	res &= (cfg->num_defined_bodies >= LIMITS_ENTITIES.x && cfg->num_defined_bodies <= LIMITS_ENTITIES.y);
+	res &= (cfg->grav_accel >= LIMITS_GRAVITY.x && cfg->grav_accel <= LIMITS_GRAVITY.y);
+	res &= (cfg->collision_perfection_coef >= LIMITS_COLCOEFF.x && cfg->collision_perfection_coef <= LIMITS_COLCOEFF.y);
+	res &= (cfg->grav_accel >= LIMITS_GRAVITY.x && cfg->grav_accel <= LIMITS_GRAVITY.y);
+	res &= (cfg->mRange.x >= LIMITS_MRANGE.x && cfg->mRange.y <= LIMITS_MRANGE.y);
+	res &= (cfg->phys_area_size.x >= LIMITS_RESOLUTION.x && cfg->phys_area_size.y >= LIMITS_RESOLUTION.x);
+
+	const unsigned int min = cfg->phys_area_size.x > cfg->phys_area_size.y ? cfg->phys_area_size.y : cfg->phys_area_size.x;
+	res &= (cfg->pixels_per_meter >= LIMITS_PPM.x && cfg->pixels_per_meter <= min);
+	res &= (cfg->vRange.x >= LIMITS_VRANGE.x && cfg->vRange.y <= min);
+	res &= (cfg->rRange.x >= LIMITS_RRANGE.x && cfg->rRange.y <= min);
+
+
+	const int n = cfg->num_defined_bodies;
+	for (int i = 0; i < n; i++) {
+		bodyDEF* def = cfg->definitions + i;
+		res &= (def->mass >= LIMITS_MRANGE.x && def->mass <= LIMITS_MRANGE.y);
+		res &= (def->velocity.x >= LIMITS_VRANGE.x && def->velocity.y <= min);
+		res &= (def->radius >= LIMITS_RRANGE.x && def->radius <= min);
+		res &= (def->position.x >= 0 && def->position.x <= cfg->phys_area_size.x && def->position.y >= 0 && def->position.y <= cfg->phys_area_size.y);
+	}
+
+	return res;
+}
+
+void readNLines(FILE* file, char* buffer, const int buffer_size, void* dest, size_t type_size, const int n_lines, void(*fptr)(const char*, void* dest)) {
+	for (int i = 0; i < n_lines; i++) {
+		fgets(buffer, buffer_size, file);
+		clearLine(buffer);
+		if (strlen(buffer) == 0) { //clear line or comment
+			i--;
+			continue;
+		}
+
+		//hack
+		char* ptr = (char*)(dest);
+		ptr += i * type_size;
+		fptr(buffer, ptr);
+	}
 }
 

@@ -12,6 +12,6 @@ void normalizeVecI(sfVector2i* vec);
 float dotProd(sfVector2f* v1, sfVector2f* v2);
 
 // required form: x - y , where x and y are floats, whitespaces are ignored
-sfVector2f strtov2f(const char* str); 
+sfVector2f strtov2f(const char* str);
 
 #endif

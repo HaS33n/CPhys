@@ -51,7 +51,7 @@ typedef struct {
 World* createWorld(Config* config);
 void deleteWorld(World* wrld);
 
-void updateWorld(World* wrld, sfTime deltaT);
+void updateWorld(World* wrld, sfTime deltaT); //TODO fix physics
 void drawWorld(sfRenderWindow* target, World* wrld);
 
 
@@ -60,8 +60,10 @@ CircPhysicsBody* createCPBody();
 void deleteCPBody(CircPhysicsBody* bdy);
 
 void drawCPBody(sfRenderWindow* target, CircPhysicsBody* obj);
+
+//TODO: ensure no body will be generated on top of another and fix ranges when spread between them is too small
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng);
-static CircPhysicsBody* createTestDummy(sfVector2f pos, float r, sfVector2f v, float m, MTRand* rng);
+static CircPhysicsBody* createTestDummy(sfVector2f pos, float r, sfVector2f v, float m, MTRand* rng); //TODO change name
 
 void deleteConfig(Config* cfg);
 #endif

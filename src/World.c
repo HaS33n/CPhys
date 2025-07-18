@@ -139,7 +139,6 @@ void drawCPBody(sfRenderWindow* target, CircPhysicsBody* obj){
 	sfRenderWindow_drawCircleShape(target, obj->entity, NULL);
 }
 
-//TODO: ensure no body will be generated on top of another and fix ranges
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng){
 	CircPhysicsBody* bdy = createCPBody();
 
