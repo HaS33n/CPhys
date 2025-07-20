@@ -6,6 +6,7 @@
 #include <SFML/Graphics.h>
 #include <SFML/System.h>
 #include "mtwister.h"
+#include <stdbool.h>
 
 typedef struct {
 	float mass; //kg
@@ -45,6 +46,7 @@ typedef struct {
 	CircPhysicsBody** bodies;
 
 	MTRand rng;
+	bool stopped;
 }World;
 
 //---------------------------------------------------------------------------------------------
@@ -66,4 +68,5 @@ CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_r
 static CircPhysicsBody* createTestDummy(sfVector2f pos, float r, sfVector2f v, float m, MTRand* rng); //TODO change name
 
 void deleteConfig(Config* cfg);
+Config* createCopyOfConfig(const Config* cfg);
 #endif

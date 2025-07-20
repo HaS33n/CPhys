@@ -4,13 +4,14 @@
 #include <stdlib.h>
 #include "../include/Application.h"
 
-int main(void){
-    /*
-    * TODO: implement using optional config file path from commandline
-    */
+int main(int argc, char* argv[]){
+    char* path = "config.cinit";
+    if (argc == 2) {
+        path = argv[1];
+    }
 
 
-    Application* app = initApplication("config.cinit");
+    Application* app = initApplication(path);
     runApplication(app);
     deleteApplication(app);
 

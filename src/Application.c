@@ -30,12 +30,33 @@ void runApplication(Application* app){
 
 	sfEvent event;
 	sfClock* clock = sfClock_create();
+	sfRenderWindow_setKeyRepeatEnabled(window, sfFalse);
 
 	while (sfRenderWindow_isOpen(window)){
 
 		while (sfRenderWindow_pollEvent(window, &event)){
 			if (event.type == sfEvtClosed)
 				sfRenderWindow_close(window);
+
+			else if (event.type == sfEvtKeyPressed) {
+				switch (event.key.code) {
+				case sfKeySpace:
+					world->stopped = !world->stopped;
+					break;
+				case sfKeyEscape:
+				case sfKeyQ:
+					sfRenderWindow_close(window);
+					break;
+				case sfKeyR:
+					app->world = createWorld(createCopyOfConfig(world->config));
+					deleteWorld(world);
+					world = app->world;
+					
+					break;
+				default:
+					break;
+				}
+			}
 		}
 
 		updateWorld(world,sfClock_restart(clock));
@@ -72,7 +93,7 @@ static void parseBdyVal(const char* src, void* dest) {
 //----------------------------------------------------------------
 
 //This function assumes that file has correct format of information
-//if not, then program will probably segfualt -> I have a handler for that B)
+//if not, then program will probably segfualt -> I have a handler for that B) ((or should have...))
 Config* parseInputFromPath(const char* path){
 	Config* cfg = malloc(sizeof(Config));
 	if (cfg == NULL) {

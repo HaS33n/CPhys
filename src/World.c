@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 
 World* createWorld(Config* config){
 	World* wrld = malloc(sizeof(World));
@@ -20,7 +21,7 @@ World* createWorld(Config* config){
 	}
 	srand(time(NULL));
 	wrld->rng = seedRand(rand());
-
+	wrld->stopped = false;
 
 	for (int i = 0; i < config->num_defined_bodies; i++) {
 		bodyDEF* def = config->definitions + i;
@@ -48,6 +49,9 @@ void deleteWorld(World* wrld){
 }
 
 void updateWorld(World* wrld, sfTime deltaT){
+	if (wrld->stopped)
+		return;
+
 	// /*
 	const float dt = sfTime_asSeconds(deltaT);
 
@@ -203,4 +207,14 @@ CircPhysicsBody* createTestDummy(sfVector2f pos, float r, sfVector2f v, float m,
 void deleteConfig(Config* cfg){
 	free(cfg->definitions);
 	free(cfg);
+}
+
+Config* createCopyOfConfig(const Config* cfg){
+	Config* newcfg = malloc(sizeof(Config));
+
+	*newcfg = *cfg;
+	newcfg->definitions = malloc(sizeof(bodyDEF) * newcfg->num_defined_bodies);
+	memcpy(newcfg->definitions, cfg->definitions, sizeof(bodyDEF) * cfg->num_defined_bodies);
+
+	return newcfg;
 }

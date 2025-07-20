@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 // -1 means that there is a special rule for it
+// no need to use enums tho
 #define LIMITS_ENTITIES (sfVector2i){0,20}
 #define LIMITS_GRAVITY (sfVector2f){0,100}
 #define LIMITS_PPM (sfVector2i){1,-1}
