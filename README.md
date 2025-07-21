@@ -1,5 +1,5 @@
 
-![Logo](https://github.com/HaS33n/CPhys/tree/master/imgs/logo.png)
+![Logo](/imgs/logo.png)
 
 
 # CPHYS
