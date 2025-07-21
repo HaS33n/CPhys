@@ -1,7 +1,8 @@
 #NOTE! every line that is NOT starting with '#' or '\n' will be interpreted as data!
 #This can potentially break the parser!
 #Also, for configuring enviroment, the order of the lines MATTERS! (comment lines obviously are discarded and they do not count)
-#Example config file with restrictions:
+#No more than 999 characters in one line! ASCII only
+#Example config file with limitations:
 
 1 #defined entities count <0 - 20>
 1 #total entities count <0 - 20>
