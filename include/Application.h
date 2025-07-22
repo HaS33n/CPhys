@@ -19,7 +19,10 @@
 #define LIMITS_VRANGE (sfVector2f){0,-1}
 #define LIMITS_RRANGE (sfVector2f){1,-1}
 
-
+typedef struct {
+	sfVertexArray* vertical;
+	sfVertexArray* horizontal;
+} Grid;
 
 typedef struct{
 	
@@ -32,8 +35,12 @@ void runApplication(Application* app);
 void deleteApplication(Application* app);
 
 static Config* parseInputFromPath(const char* path);
-static void clearLine(char* line); //TODO: change name
 static bodyDEF defineBodyFromStr(const char* str);
 static bool checkCFG(const Config* cfg); //TODO: add checks for place swapped values
 static void readNLines(FILE* file, char* buffer, const int buffer_size, void* dest, size_t type_size, const int n_lines, void (*fptr)(const char*, void* dest));
+
+Grid* createGrid(sfVector2u bounds);
+void deleteGrid(Grid* grd);
+void drawGrid(sfRenderWindow* target, const World* wrld, Grid* grd);
+
 #endif

@@ -5,7 +5,6 @@ bool doWallCollison(CircPhysicsBody* body, sfVector2u bounds, float coeff){
 
 	sfVector2f position = sfCircleShape_getPosition(body->entity);
 	const float r = sfCircleShape_getRadius(body->entity);
-	const float mass = body->mass;
 	sfVector2f velocity = body->velocity;
 
 	if (position.x + 2 * r >= bounds.x || position.x <= 0) {

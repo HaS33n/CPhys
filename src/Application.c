@@ -33,6 +33,7 @@ void runApplication(Application* app){
 	sfRenderWindow_setKeyRepeatEnabled(window, sfFalse);
 	bool update = true;
 
+	Grid* grid = createGrid(world->config->phys_area_size);
 
 	while (sfRenderWindow_isOpen(window)){
 
@@ -68,10 +69,12 @@ void runApplication(Application* app){
 			updateWorld(world,dt);
 
 		sfRenderWindow_clear(window, sfBlack);
+		drawGrid(window,world,grid);
 		drawWorld(window, world);
 		sfRenderWindow_display(window);
 	}
 
+	deleteGrid(grid);
 }
 
 void deleteApplication(Application* app){
@@ -100,7 +103,7 @@ static void parseBdyVal(const char* src, void* dest) {
 
 //This function assumes that file has correct format of information
 //if not, then program will probably segfualt -> I have a handler for that B) ((or should have...))
-Config* parseInputFromPath(const char* path){
+static Config* parseInputFromPath(const char* path){
 	Config* cfg = malloc(sizeof(Config));
 	if (cfg == NULL) {
 		perror("Memory Fail\n");
@@ -164,7 +167,7 @@ static void clearLine(char* line) {
 	}
 }
 
-bodyDEF defineBodyFromStr(const char* str){
+static bodyDEF defineBodyFromStr(const char* str){
 	sfVector2f pos;
 	sfVector2f vel;
 	float r, m;
@@ -177,7 +180,7 @@ bodyDEF defineBodyFromStr(const char* str){
 	return ret;
 }
 
-bool checkCFG(const Config* cfg){
+static bool checkCFG(const Config* cfg){
 	bool res = true;
 
 
@@ -207,7 +210,7 @@ bool checkCFG(const Config* cfg){
 	return res;
 }
 
-void readNLines(FILE* file, char* buffer, const int buffer_size, void* dest, size_t type_size, const int n_lines, void(*fptr)(const char*, void* dest)) {
+static void readNLines(FILE* file, char* buffer, const int buffer_size, void* dest, size_t type_size, const int n_lines, void(*fptr)(const char*, void* dest)) {
 	for (int i = 0; i < n_lines; i++) {
 		fgets(buffer, buffer_size, file);
 		clearLine(buffer);
@@ -220,6 +223,80 @@ void readNLines(FILE* file, char* buffer, const int buffer_size, void* dest, siz
 		char* ptr = (char*)(dest);
 		ptr += i * type_size;
 		fptr(buffer, ptr);
+	}
+}
+
+Grid* createGrid(sfVector2u bounds){
+	Grid* grd = malloc(sizeof(Grid));
+
+	sfVertexArray* vert = sfVertexArray_create();
+	sfVertexArray_setPrimitiveType(vert, sfLines);
+
+	sfVertex top, bottom;
+
+	top.color = sfWhite;
+	bottom.color = sfWhite;
+
+	sfVector2f posV = { 0,0 };
+	top.position = posV;
+	posV.y = bounds.y;
+	bottom.position = posV;
+	sfVertexArray_append(vert, top);
+	sfVertexArray_append(vert, bottom);
+
+	
+	sfVertexArray* horiz = sfVertexArray_create();
+	sfVertexArray_setPrimitiveType(horiz, sfLines);
+
+	sfVertex left, right;
+
+	left.color = sfWhite;
+	right.color = sfWhite;
+
+	sfVector2f posH = { 0,0 };
+	left.position = posV;
+	posV.x = bounds.x;
+	right.position = posV;
+	sfVertexArray_append(horiz, left);
+	sfVertexArray_append(horiz, right);
+
+	grd->vertical = vert;
+	grd->horizontal = horiz;
+
+	return grd;
+}
+
+void deleteGrid(Grid* grd) {
+	sfVertexArray_destroy(grd->vertical);
+	sfVertexArray_destroy(grd->horizontal);
+	free(grd);
+}
+
+void drawGrid(sfRenderWindow* target, const World* wrld, Grid* grd) {
+	//draw vertical lines
+	int vn = wrld->config->phys_area_size.x / wrld->config->pixels_per_meter;
+	for (int i = 0; i < vn; i++) {
+		float npos = wrld->config->pixels_per_meter * i;
+
+		sfVertex* top = sfVertexArray_getVertex(grd->vertical, 0);
+		sfVertex* bot = sfVertexArray_getVertex(grd->vertical, 1);
+		top->position.x = npos;
+		bot->position.x = npos;
+
+		sfRenderWindow_drawVertexArray(target, grd->vertical, NULL);
+	}
+
+	//draw horizontal lines
+	int hn = wrld->config->phys_area_size.y / wrld->config->pixels_per_meter;
+	for (int i = 0; i < vn; i++) {
+		float npos = wrld->config->pixels_per_meter * i;
+
+		sfVertex* left = sfVertexArray_getVertex(grd->horizontal, 0);
+		sfVertex* right = sfVertexArray_getVertex(grd->horizontal, 1);
+		left->position.y = npos;
+		right->position.y = npos;
+
+		sfRenderWindow_drawVertexArray(target, grd->horizontal, NULL);
 	}
 }
 
