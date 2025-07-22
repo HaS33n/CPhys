@@ -1,21 +1,12 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#define PHYS_EPS 1.f
-
 #include <SFML/Graphics.h>
 #include <SFML/System.h>
 #include "mtwister.h"
 #include <stdbool.h>
+#include "PhysicsEngine.h"
 
-typedef struct {
-	float mass; //kg
-	sfVector2f velocity; //mps
-
-
-	sfCircleShape* entity;
-
-}CircPhysicsBody;
 
 typedef struct {
 	float mass;

@@ -52,7 +52,7 @@ void updateWorld(World* wrld, sfTime deltaT){
 	if (wrld->stopped)
 		return;
 
-	// /*
+	/*
 	const float dt = sfTime_asSeconds(deltaT);
 
 	for (int i = 0; i < wrld->config->num_bodies; i++) {
@@ -109,7 +109,19 @@ void updateWorld(World* wrld, sfTime deltaT){
 		body->velocity = velocity;
 		sfCircleShape_setPosition(body->entity, position);
 	}
-	// */
+	*/
+
+
+	for (int i = 0; i < wrld->config->num_bodies; i++) {
+		CircPhysicsBody* body = wrld->bodies[i];
+
+		bool b = doWallCollison(body, wrld->config->phys_area_size, wrld->config->collision_perfection_coef);
+		for (int j = i + 1; j < wrld->config->num_bodies; j++)
+			doCollisionBetweenBodies(body, wrld->bodies[j], wrld->config->collision_perfection_coef);
+
+		updateMotion(body, wrld->config->grav_accel, wrld->config->pixels_per_meter, deltaT, b);
+	}
+
 }
 
 void drawWorld(sfRenderWindow* target, World* wrld){

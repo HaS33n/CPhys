@@ -31,6 +31,8 @@ void runApplication(Application* app){
 	sfEvent event;
 	sfClock* clock = sfClock_create();
 	sfRenderWindow_setKeyRepeatEnabled(window, sfFalse);
+	bool update = true;
+
 
 	while (sfRenderWindow_isOpen(window)){
 
@@ -57,9 +59,13 @@ void runApplication(Application* app){
 					break;
 				}
 			}
+
 		}
 
-		updateWorld(world,sfClock_restart(clock));
+		sfTime dt = sfClock_restart(clock);
+
+		if(sfTime_asMilliseconds(dt) <= 100) //prevent weird behavior when window is moved, so the frame becomes absurdly long
+			updateWorld(world,dt);
 
 		sfRenderWindow_clear(window, sfBlack);
 		drawWorld(window, world);
