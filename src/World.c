@@ -95,49 +95,62 @@ void drawCPBody(sfRenderWindow* target, CircPhysicsBody* obj){
 	sfRenderWindow_drawCircleShape(target, obj->entity, NULL);
 }
 
+static float RNGFloatInRange(sfVector2f range, MTRand* rng){
+	
+	if (range.x < range.y){
+		float buff = range.x;
+		range.x = range.y;
+		range.y = buff;
+	}
+
+	return range.x + (range.y - range.x) * genRand(rng);
+}
+
+static sfColor generateRandomVisibleClr(MTRand* rng) {
+	uint32_t clr = genRandLong(rng);
+
+	uint8_t R = clr >> 24;
+	uint8_t G = (clr >> 16) & 255u;
+	uint8_t B = (clr >> 8) & 255u;
+
+	//ensure color is visible
+	float Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+	if (Y < 0.3f)
+		G = (uint8_t)((0.3 - 0.2126 * R - 0.0722 * B) / 0.7152); //if not visible enough, just boost green
+
+	return sfColor_fromRGBA(R,G,B,255u);
+}
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng){
 	CircPhysicsBody* bdy = createCPBody();
 
-	//TODO fix ranges
-
 	//rand() from libc sucks, thus im using superior way to generate random numbers c:
 	//note, this mt19937 implementation is NOT made by me!
-	float m = mass_range.y * genRand(rng);
-	m += mass_range.x * (m < mass_range.x); //branchless ensuring that result is greater or equal min_range
+	const float m = RNGFloatInRange(mass_range, rng);
 	bdy->mass = m;
 
-	float vx = velocity_range.y * genRand(rng);
-	vx += velocity_range.x * (vx < velocity_range.x);
-	//vx *= 1 - ((genRandLong(rng) % 2) * 2);
-
-	float vy = velocity_range.y * genRand(rng);
-	vy += velocity_range.x * (vy < mass_range.x);
-	//vy *= 1 - ((genRandLong(rng) % 2) * 2);
-
-	const sfVector2f v = { vx, vy };
-	bdy->velocity = v;
+	const float vx = RNGFloatInRange(velocity_range, rng);
+	const float vy = RNGFloatInRange(velocity_range, rng);
+	bdy->velocity = (sfVector2f){ vx,vy };
 
 	
 	sfCircleShape* shape = sfCircleShape_create();
-	float rad = radius_range.y * genRand(rng);
-	rad += radius_range.x * (rad < radius_range.x); //branchless ensuring that result is greater or equal min_range
+	float rad = RNGFloatInRange(radius_range, rng);
 	sfCircleShape_setRadius(shape, rad);
 
-	const float r = sfCircleShape_getRadius(shape) + 10.f; //10 serves as a buffor of some sort
-	bounds.x -= r;
-	bounds.y -= r;
+	const float r = rad + 5.f; //5 serves as a buffor of some sort
+	bounds.x -= 2*r;
+	bounds.y -= 2*r;
 	
 	float x = bounds.x * genRand(rng);
-	x += r * (x < 0);
+	//x += r * (x < 0);
 
 	float y = bounds.y * genRand(rng);
-	y += r * (y < 0);
+	//y += r * (y < 0);
 
 	const sfVector2f pos = { x,y };
 	sfCircleShape_setPosition(shape, pos);
 
-
-	sfCircleShape_setFillColor(shape, sfColor_fromInteger(genRandLong(rng) | 255u)); //ensure alpha always stays 255
+	sfCircleShape_setFillColor(shape, generateRandomVisibleClr(rng));
 	bdy->entity = shape;
 
 	return bdy;

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "VectorUtils.h"
 
-#define EPS 1
+#define EPS 0.5f //1
 
 typedef struct {
 	float mass; //kg

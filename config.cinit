@@ -4,17 +4,20 @@
 #No more than 999 characters in one line! ASCII only
 #Example config file with limitations:
 
-1 #defined entities count <0 - 20>
-1 #total entities count <0 - 20>
-9.8 #gravity <0 - 100>
+2 #defined entities count <0 - 20>
+2 #total entities count <0 - 20>
+0 #gravity <0 - 100>
 100 #pixels per meter <1 - min(RESwidth, RESheight)>
-0.9 #coll coeff <0 - 1>
+1 #coll coeff <0 - 1>
 
+#This section defines random bodies
 #When defining vectors, spaces between '-'s are MANDATORY!
 700 - 700 #display res
 1.5 - 30 #mass range <0.1 - 1000>
 5 - 100 #velocity range <0 - min(RESwidth, RESheight)>
 20 - 80 #radius range <1 - min(RESwidth, RESheight)/2> 
 
+#Note: origin is the top left corner of boundary box, not the center!
 #each next line will describe a custom entity. Lacking entities will be randomized. Any additional entities will be ignored.
-100,100,80,0,0,10 #posx, posy, radius, velx, vely, mass !! NO SPACES BETWEEN ','!!
+0,350,50,5,0,10 #posx, posy, radius, velx, vely, mass !! NO SPACES BETWEEN ','!!
+300,350,50,-5,0,10
