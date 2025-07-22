@@ -36,17 +36,12 @@ CPHYS is also using high efficency mt19937 algorithm for generating random numbe
 
 You have 2 choices:
 
-- ### Pre Complied Release Package
+- ### Pre Complied Release Package (not available for mac)
 Download pre compiled package for your system from "Realeses" tab of this repo, then unpack to folder of your choice... CPHYS is ready to go! (since binaries are not signed, if you are on windows machine, the system will warn you of not trusted software. Just go to advanced settings and ignore it)
 
 - ### Since its cross platform and open source - Build it yourself!
 If you are on linux, make sure to build or install [CSFML](https://github.com/SFML/CSFML) first, then download this repo and run provided makefile.
 
-```bash
-  cd CPhys
-  make all
-  ./bin/Cphys
-```
 
 On every other system you will have to manually build or install [CSFML](https://github.com/SFML/CSFML) and then using it as dependency for this project, you'll have to build it using build system of your choice. If you are unsure what to do, just download pre compiled package (not available for Mac).
 ## Usage/Examples
@@ -61,7 +56,7 @@ CPHYS's starting state is set up using configuration files. There are a couple o
 
 I.E for linux:
 ```bash
-./bin/Cphys examples/RubberBall.cinit
+./Cphys examples/RubberBall.cinit
 ```
 
 ### Writting own scenarios
@@ -79,5 +74,4 @@ If you want to write your own simulation scenario, just check how the example fi
  - [Sultanik's mt19937 implementation](https://github.com/ESultanik/mtwister) - implementation of mt19937 RNG algorithm used in this project
 
 ## Known Issues
-- RNG ranges are not working properly
-- Slight numerical instablility
+- Slight numerical instablility.

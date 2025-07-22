@@ -120,6 +120,7 @@ static sfColor generateRandomVisibleClr(MTRand* rng) {
 
 	return sfColor_fromRGBA(R,G,B,255u);
 }
+
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng){
 	CircPhysicsBody* bdy = createCPBody();
 

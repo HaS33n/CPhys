@@ -7,7 +7,8 @@ bool doWallCollison(CircPhysicsBody* body, sfVector2u bounds, float coeff){
 	const float r = sfCircleShape_getRadius(body->entity);
 	sfVector2f velocity = body->velocity;
 
-	//TODO branchless
+	
+	/* Im keeping this for reference, since its easier to read that way
 	if (position.x + 2 * r >= bounds.x || position.x <= 0) {
 
 		velocity.x *= -1 * coeff;
@@ -30,6 +31,8 @@ bool doWallCollison(CircPhysicsBody* body, sfVector2u bounds, float coeff){
 		}
 
 	}
+	
+
 	if (position.y + 2 * r >= bounds.y || position.y <= 0) {
 
 		velocity.y *= -1 * coeff;
@@ -53,8 +56,39 @@ bool doWallCollison(CircPhysicsBody* body, sfVector2u bounds, float coeff){
 		}
 
 	}
-		
+	*/
 
+	//Branchless ^^
+	//Walls
+	bool bx1 = position.x + 2 * r >= bounds.x;
+	bool bx2 = position.x <= 0;
+	bool bx = bx1 || bx2;
+
+	velocity.x *= (1 * !bx) + (-1 * coeff) * bx;
+	velocity.y *= (1 * !bx) + (coeff) * bx;
+
+	position.x = 0 + (bounds.x - (2 * r)) * bx1 + position.x * !bx;
+
+	velocity.x *= !((fabs(velocity.x) < EPS) && bx);
+	velocity.y *= !((fabs(velocity.y) < EPS) && bx);
+
+	//Floor and Roof
+	bool by1 = position.y + 2 * r >= bounds.y;
+	bool by2 = position.y <= 0;
+	bool by = by1 || by2;
+	
+	velocity.y *= (1 * !by) + (-1 * coeff) * by;
+	velocity.x *= (1 * !by) + (coeff) * by;
+
+	position.y = 0 + (bounds.y - (2 * r)) * by1 + position.y * !by;
+
+	velocity.x *= !((fabs(velocity.x) < EPS) && by);
+	velocity.y *= !((fabs(velocity.y) < EPS) && by);
+
+	is_sticked_to_floor = (fabs(velocity.y) < EPS) && by;
+
+
+	//set
 	sfCircleShape_setPosition(body->entity, position);
 	body->velocity = velocity;
 
