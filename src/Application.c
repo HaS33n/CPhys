@@ -1,5 +1,6 @@
 #include "../include/Application.h"
 #include "../include//VectorUtils.h"
+#include "math.h"
 
 Application* initApplication(const char* path){
 	Application* app = malloc(sizeof(Application));
@@ -202,7 +203,7 @@ static bool checkCFG(const Config* cfg){
 	for (int i = 0; i < n; i++) {
 		bodyDEF* def = cfg->definitions + i;
 		res &= (def->mass >= LIMITS_MRANGE.x && def->mass <= LIMITS_MRANGE.y);
-		res &= (def->velocity.x >= LIMITS_VRANGE.x && def->velocity.y <= min);
+		res &= (fabs(def->velocity.x) >= LIMITS_VRANGE.x && fabs(def->velocity.x) <= min && fabs(def->velocity.y) >= LIMITS_VRANGE.x && fabs(def->velocity.y) <= min);
 		res &= (def->radius >= LIMITS_RRANGE.x && def->radius <= min);
 		res &= (def->position.x >= 0 && def->position.x <= cfg->phys_area_size.x && def->position.y >= 0 && def->position.y <= cfg->phys_area_size.y);
 	}

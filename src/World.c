@@ -52,66 +52,6 @@ void updateWorld(World* wrld, sfTime deltaT){
 	if (wrld->stopped)
 		return;
 
-	/*
-	const float dt = sfTime_asSeconds(deltaT);
-
-	for (int i = 0; i < wrld->config->num_bodies; i++) {
-		int db = 0;
-
-		CircPhysicsBody* body = wrld->bodies[i];
-
-		sfVector2f position = sfCircleShape_getPosition(body->entity);
-		const float r = sfCircleShape_getRadius(body->entity);
-		const float mass = body->mass;
-		sfVector2f velocity = body->velocity;
-
-		//gravity
-		velocity.y += wrld->config->grav_accel * dt;
-
-		//collision with walls TODO: Branchless
-		if (position.x + 2 * r >= wrld->config->phys_area_size.x || position.x <= 0) {
-
-			velocity.x *= -1 * wrld->config->collision_perfection_coef;
-			velocity.y *= wrld->config->collision_perfection_coef;
-
-			if (fabs(velocity.x) < PHYS_EPS)
-				velocity.x = 0;
-
-			if (fabs(velocity.y) < PHYS_EPS)
-				velocity.y = 0;
-		}
-		if (position.y + 2 * r >= wrld->config->phys_area_size.y || position.y <= 0) {
-
-			velocity.y *= -1 * wrld->config->collision_perfection_coef;
-			velocity.x *= wrld->config->collision_perfection_coef;
-
-			if (fabs(velocity.x) < PHYS_EPS)
-				velocity.x = 0;
-
-			if (fabs(velocity.y) < PHYS_EPS)
-				velocity.y = 0;
-
-			db = 1;
-		}
-
-		//collision with other bodies
-		//TODO
-
-
-		position.x += dt * velocity.x * wrld->config->pixels_per_meter;
-		position.y += dt * velocity.y * wrld->config->pixels_per_meter;
-
-
-
-		if (db)
-			printf("%f , %f\n", velocity.x, velocity.y);
-
-		body->velocity = velocity;
-		sfCircleShape_setPosition(body->entity, position);
-	}
-	*/
-
-
 	for (int i = 0; i < wrld->config->num_bodies; i++) {
 		CircPhysicsBody* body = wrld->bodies[i];
 
@@ -158,6 +98,8 @@ void drawCPBody(sfRenderWindow* target, CircPhysicsBody* obj){
 CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_range, sfVector2f bounds, sfVector2f radius_range, MTRand* rng){
 	CircPhysicsBody* bdy = createCPBody();
 
+	//TODO fix ranges
+
 	//rand() from libc sucks, thus im using superior way to generate random numbers c:
 	//note, this mt19937 implementation is NOT made by me!
 	float m = mass_range.y * genRand(rng);
@@ -198,7 +140,6 @@ CircPhysicsBody* createRandomCPBody(sfVector2f mass_range, sfVector2f velocity_r
 	sfCircleShape_setFillColor(shape, sfColor_fromInteger(genRandLong(rng) | 255u)); //ensure alpha always stays 255
 	bdy->entity = shape;
 
-	printf("%f , %f\n", vx, vy);
 	return bdy;
 }
 

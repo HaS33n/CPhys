@@ -11,7 +11,8 @@ At its core, CPHYS simulates interactions between rigid bodies using classical N
 
 ## Demo
 
-GIFs todo
+![rball](/imgs/rubberball.gif)
+![mad](/imgs/madness.gif)
 
 
 ## Features
@@ -76,3 +77,7 @@ If you want to write your own simulation scenario, just check how the example fi
 
  - [CSFML](https://github.com/SFML/CSFML) - Graphics library
  - [Sultanik's mt19937 implementation](https://github.com/ESultanik/mtwister) - implementation of mt19937 RNG algorithm used in this project
+
+## Known Issues
+- RNG ranges are not working properly
+- Slight numerical instablility

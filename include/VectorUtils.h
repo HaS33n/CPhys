@@ -3,13 +3,12 @@
 
 #include <SFML/System/Vector2.h>
 
-void normalizeVecF(sfVector2f* vec);
-void normalizeVecU(sfVector2u* vec);
-void normalizeVecI(sfVector2i* vec);
+sfVector2f addVectorsF(const sfVector2f* v1, const sfVector2f* v2);
+sfVector2f subVectorsF(const sfVector2f* v1, const sfVector2f* v2);
+sfVector2f multScalVecF(const sfVector2f* v1, const float s);
 
-#define normalizeVec(vec) _Generic(vec, sfVector2i*: normalizeVecI, sfVector2u*: normalizeVecU, sfVector2f*: normalizeVecF)(vec)
-
-float dotProd(sfVector2f* v1, sfVector2f* v2);
+float dotProd(const sfVector2f* v1, const sfVector2f* v2);
+float normSqrd(const sfVector2f* v);
 
 // required form: x - y , where x and y are floats, whitespaces are ignored
 sfVector2f strtov2f(const char* str);

@@ -1,0 +1,23 @@
+#NOTE! every line that is NOT starting with '#' or '\n' will be interpreted as data!
+#This can potentially break the parser!
+#Also, for configuring enviroment, the order of the lines MATTERS! (comment lines obviously are discarded and they do not count)
+#No more than 999 characters in one line! ASCII only
+#Example config file with limitations:
+
+0 #defined entities count <0 - 20>
+5 #total entities count <0 - 20>
+0 #gravity <0 - 100>
+100 #pixels per meter <1 - min(RESwidth, RESheight)>
+1 #coll coeff <0 - 1>
+
+#This section defines random bodies
+#When defining vectors, spaces between '-'s are MANDATORY!
+700 - 700 #display res
+1.5 - 30 #mass range <0.1 - 1000>
+5 - 15 #velocity range <0 - min(RESwidth, RESheight)>
+20 - 80 #radius range <1 - min(RESwidth, RESheight)/2> 
+
+#Note: origin is the top left corner of boundary box, not the center!
+#each next line will describe a custom entity. Lacking entities will be randomized. Any additional entities will be ignored.
+#0,320,50,5,0,10 #posx, posy, radius, velx, vely, mass !! NO SPACES BETWEEN ','!!
+#490,350,50,-5,0,10

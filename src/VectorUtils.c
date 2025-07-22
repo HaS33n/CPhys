@@ -2,35 +2,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void normalizeVecF(sfVector2f* vec){
-	float vx = vec->x;
-	float vy = vec->y;
-	float magnitude = vx * vx + vy * vy;
-
-	vec->x = vx / magnitude;
-	vec->y = vy / magnitude;
+sfVector2f addVectorsF(const sfVector2f* v1, const sfVector2f* v2){
+	sfVector2f res;
+	res.x = v1->x + v2->x;
+	res.y = v1->y + v2->y;
+	return res;
 }
 
-void normalizeVecU(sfVector2u* vec){
-	unsigned vx = vec->x;
-	unsigned vy = vec->y;
-	unsigned magnitude = vx * vx + vy * vy;
-
-	vec->x = vx / magnitude;
-	vec->y = vy / magnitude;
+sfVector2f subVectorsF(const sfVector2f* v1, const sfVector2f* v2){
+	sfVector2f v;
+	v.x = -(v2->x);
+	v.y = -(v2->y);
+	return addVectorsF(v1, &v);
 }
 
-void normalizeVecI(sfVector2i* vec){
-	int vx = vec->x;
-	int vy = vec->y;
-	int magnitude = vx * vx + vy * vy;
+sfVector2f multScalVecF(const sfVector2f* v1, const float s){
+	sfVector2f res;
 
-	vec->x = vx / magnitude;
-	vec->y = vy / magnitude;
+	res.x = v1->x * s;
+	res.y = v1->y * s;
+	return res;
 }
 
-float dotProd(sfVector2f* v1, sfVector2f* v2){
+float dotProd(const sfVector2f* v1, const sfVector2f* v2){
 	return v1->x * v2->x + v1->y * v2->y;
+}
+
+float normSqrd(const sfVector2f* v){
+	return dotProd(v, v);
 }
 
 sfVector2f strtov2f(const char* str){
